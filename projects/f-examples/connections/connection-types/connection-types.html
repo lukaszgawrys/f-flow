@@ -1,90 +1,63 @@
-<f-flow fDraggable (fLoaded)="loaded()">
+<f-flow fDraggable>
   <f-canvas>
-    <f-connection [fReassignDisabled]="true" fType="straight" fOutputId="1" fInputId="2" />
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 0, y: 0 }"
-      fNodeOutput
-      fOutputId="1"
-      fOutputConnectableSide="right"
+    <!-- Connections come straight from edges[].
+         Each edge is bound to:
+           - the source's single bottom output port
+           - its *own* input port index on the target (computed per-target) -->
+    <f-connection
+      *ngFor="let e of edges"
+      fType="bezier"
+      [fRadius]="40"
+      [fOffset]="12 + (inIndex(e) * 8)"
+      [fOutputId]="outPortId(e.sourceId)"
+      [fInputId]="inPortId(e.targetId, inIndex(e))"
     >
-      Node
-    </div>
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 200, y: 50 }"
-      fNodeInput
-      fInputId="2"
-      fInputConnectableSide="left"
-    >
-      Node
-    </div>
+    </f-connection>
 
-    <f-connection [fReassignDisabled]="true" fType="segment" fOutputId="3" fInputId="4" />
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 0, y: 150 }"
-      fNodeOutput
-      fOutputId="3"
-      fOutputConnectableSide="right"
-    >
-      Node
-    </div>
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 200, y: 200 }"
-      fNodeInput
-      fInputId="4"
-      fInputConnectableSide="left"
-    >
-      Node
-    </div>
+    <!-- Render nodes -->
 
-    <f-connection [fReassignDisabled]="true" fType="bezier" fOutputId="5" fInputId="6" />
     <div
+      *ngFor="let n of nodes"
       fNode
       fDragHandle
-      [fNodePosition]="{ x: 0, y: 300 }"
-      fNodeOutput
-      fOutputId="5"
-      fOutputConnectableSide="right"
+      [fNodePosition]="n.position"
+      style="position:relative; width:140px; padding:8px 12px;
+               border:1px solid #ccc; border-radius:6px; text-align:center;"
     >
-      Node
-    </div>
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 200, y: 350 }"
-      fNodeInput
-      fInputId="6"
-      fInputConnectableSide="left"
-    >
-      Node
-    </div>
-    <f-connection [fReassignDisabled]="true" fType="adaptive-curve" fOutputId="7" fInputId="8" />
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 0, y: 450 }"
-      fNodeOutput
-      fOutputId="7"
-      fOutputConnectableSide="right"
-    >
-      Node
-    </div>
-    <div
-      fNode
-      fDragHandle
-      [fNodePosition]="{ x: 200, y: 500 }"
-      fNodeInput
-      fInputId="8"
-      fInputConnectableSide="left"
-    >
-      Node
+      {{ n.label }}
+
+      <!-- Bottom output port (only if node has outgoing edges) -->
+      <div
+        *ngIf="hasOutgoing(n.id)"
+        style="position:absolute; bottom:-2px; left:0; right:0; height:0; pointer-events:none;"
+      >
+        <div
+          fNodeOutput
+          [fOutputId]="outPortId(n.id)"
+          [fOutputConnectableSide]="'bottom'"
+          style="position:absolute; left:50%; bottom:0; width:8px; height:8px;
+                   transform:translate(-50%, 50%); pointer-events:auto;"
+        ></div>
+      </div>
+
+      <!-- Top input ports: count == number of incoming edges -->
+      <div
+        *ngIf="inCount(n.id) > 0"
+        style="position:absolute; top:-2px; left:0; right:0; height:0; pointer-events:none;"
+      >
+        <ng-container
+          *ngFor="let _ of [].constructor(inCount(n.id)); let i = index; let cnt = count"
+        >
+          <div
+            fNodeInput
+            [fInputId]="inPortId(n.id, i)"
+            [fInputConnectableSide]="'top'"
+            [style.left.%]="portLeftPercent(i, cnt)"
+            style="position:absolute; top:0; width:8px; height:8px;
+                     transform:translate(-50%, -50%); pointer-events:auto;"
+          ></div>
+        </ng-container>
+      </div>
     </div>
   </f-canvas>
 </f-flow>
