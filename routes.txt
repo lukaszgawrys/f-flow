@@ -17,6 +17,8 @@
 /docs/f-background-component
 /docs/f-line-alignment-component
 /docs/f-minimap-component
+/docs/f-selection-area-component
+
 
 /examples/overview
 
